@@ -1,0 +1,5 @@
+body { font: 14px/1.5 ui-monospace, monospace; max-width: 900px; margin: 0 auto; padding: 16px; }
+table { border-collapse: collapse; margin: 8px 0 16px; }
+th, td { border: 1px solid #8884; padding: 2px 10px; text-align: right; }
+button, input { font: inherit; padding: 4px 10px; }
+.err { color: #c33; }

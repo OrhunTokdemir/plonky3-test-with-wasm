@@ -901,6 +901,7 @@ dependencies = [
  "p3-uni-stark",
  "postcard",
  "rand",
+ "serde",
 ]
 
 [[package]]

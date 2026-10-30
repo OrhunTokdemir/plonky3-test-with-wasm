@@ -1,0 +1,25 @@
+[package]
+name = "voter_stark_wasm"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+voter_stark = { path = ".." }
+p3-field = "0.8.0"
+wasm-bindgen = "0.2"
+# Both getrandom versions in the tree need the JS backend on wasm32-unknown-unknown.
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O3", "--enable-simd", "--enable-bulk-memory", "--enable-nontrapping-float-to-int", "--enable-sign-ext"]
+
+[workspace]

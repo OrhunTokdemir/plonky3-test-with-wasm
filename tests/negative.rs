@@ -208,3 +208,29 @@ fn proofs_are_randomized() {
     assert_eq!(a.nullifier, b.nullifier);
     assert_ne!(a.proof, b.proof);
 }
+
+#[test]
+fn stored_proof_file_round_trips_and_detects_tampering() {
+    use voter_stark::proof_store::{self, ProofFile, verify_file};
+
+    let (reg, voters, tree, signed) = setup();
+    let ballot = cast_ballot(&voters[0], &tree, &signed, 1).unwrap();
+    let dir = std::env::temp_dir().join(format!("voter_stark_proofs_{}", std::process::id()));
+    let path = proof_store::save(&dir, &signed, &ballot).unwrap();
+
+    let file = proof_store::load(&path).unwrap();
+    assert_eq!(verify_file(&file, &reg.verifying_key()), Ok(()));
+
+    // Flip one bit inside the stored proof bytes.
+    let mut tampered = ProofFile::from_bytes(&std::fs::read(&path).unwrap()).unwrap();
+    let mid = tampered.proof.len() / 2;
+    tampered.proof[mid] ^= 1;
+    let tampered = ProofFile::from_bytes(&tampered.to_bytes()).unwrap();
+    assert!(verify_file(&tampered, &reg.verifying_key()).is_err());
+
+    // A different registrar key must reject the root signature.
+    let other = Registrar::new();
+    assert_eq!(verify_file(&file, &other.verifying_key()), Err(BallotError::BadRootSignature));
+
+    std::fs::remove_dir_all(&dir).ok();
+}

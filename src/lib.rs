@@ -14,6 +14,7 @@
 pub mod air;
 pub mod ballot;
 pub mod hash;
+pub mod proof_store;
 pub mod registry;
 pub mod stark;
 pub mod tree;
