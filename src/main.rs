@@ -72,8 +72,55 @@ fn main() {
         t.elapsed().as_millis()
     );
 
+    #[cfg(feature = "aggregation")]
+    aggregate_demo(&ballot_box, &signed, &voters);
+
     println!("\n== Tally ==");
     for (c, n) in ballot_box.tally.iter().enumerate() {
         println!("  candidate {c}: {n}");
+    }
+}
+
+/// Recursive 8 -> 1 aggregation plus each voter's receipt self-check.
+#[cfg(feature = "aggregation")]
+fn aggregate_demo(
+    ballot_box: &voter_stark::ballot::BallotBox,
+    signed: &voter_stark::registry::SignedRoot,
+    voters: &[voter_stark::registry::Voter],
+) {
+    use voter_stark::aggregate::{AggregateVerifier, aggregate, serialize_agg};
+    use voter_stark::hash::nullifier;
+    use voter_stark::receipts::verify_receipt;
+
+    println!("\n== Recursive aggregation ({NUM_LEAVES} proofs -> 1) ==");
+    let t = Instant::now();
+    let bundle = aggregate(ballot_box.accepted(), signed).expect("aggregation failed");
+    println!(
+        "  aggregate proof {} KiB in {} ms",
+        serialize_agg(&bundle.proof).len() / 1024,
+        t.elapsed().as_millis()
+    );
+    let st = &bundle.statement;
+    println!("  receipt root = {} | tally {:?}", digest_hex(&st.receipt_root), st.tally);
+    let t = Instant::now();
+    let verifier = AggregateVerifier::derive().expect("verifier key");
+    println!("  auditor derives verifier key: {} ms", t.elapsed().as_millis());
+    let t = Instant::now();
+    let result = verifier.verify(&bundle.proof, st);
+    println!("  auditor verifies aggregate: {:?} ({} ms)", result, t.elapsed().as_millis());
+    assert!(result.is_ok());
+    assert_eq!(st.tally, ballot_box.tally);
+    for v in voters {
+        let nf = nullifier(&v.secret, ELECTION_ID);
+        let path = bundle.receipts.path(bundle.receipts.index_of(&nf).expect("ballot included"));
+        let vote = (v.index as u32) % NUM_CANDIDATES;
+        println!(
+            "  voter {} checks own receipt (vote {}): {} | claiming vote {} instead: {}",
+            v.index,
+            vote,
+            verify_receipt(&nf, vote, &path, &st.receipt_root),
+            (vote + 1) % NUM_CANDIDATES,
+            verify_receipt(&nf, (vote + 1) % NUM_CANDIDATES, &path, &st.receipt_root),
+        );
     }
 }

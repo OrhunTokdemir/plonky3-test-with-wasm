@@ -17,6 +17,7 @@ pub type Digest = [F; DIGEST];
 /// Domain-separation tags placed in the capacity half of the state.
 pub const DOMAIN_LEAF: u32 = 1;
 pub const DOMAIN_NULLIFIER: u32 = 2;
+pub const DOMAIN_RECEIPT: u32 = 3;
 
 pub fn perm() -> &'static Poseidon2BabyBear<WIDTH> {
     static PERM: OnceLock<Poseidon2BabyBear<WIDTH>> = OnceLock::new();
@@ -49,6 +50,14 @@ pub fn nullifier_input(secret: &Digest, election_id: u32) -> [F; WIDTH] {
     s
 }
 
+pub fn receipt_input(nullifier: &Digest, vote: u32) -> [F; WIDTH] {
+    let mut s = [F::ZERO; WIDTH];
+    s[..DIGEST].copy_from_slice(nullifier);
+    s[DIGEST] = F::from_u32(vote);
+    s[DIGEST + 1] = F::from_u32(DOMAIN_RECEIPT);
+    s
+}
+
 pub fn hash_leaf(secret: &Digest) -> Digest {
     truncate(perm().permute(leaf_input(secret)))
 }
@@ -59,4 +68,9 @@ pub fn compress(left: &Digest, right: &Digest) -> Digest {
 
 pub fn nullifier(secret: &Digest, election_id: u32) -> Digest {
     truncate(perm().permute(nullifier_input(secret, election_id)))
+}
+
+/// Leaf of the receipt tree published by an aggregate proof: `H(nullifier ‖ vote ‖ DOMAIN_RECEIPT)`.
+pub fn receipt_leaf(nullifier: &Digest, vote: u32) -> Digest {
+    truncate(perm().permute(receipt_input(nullifier, vote)))
 }

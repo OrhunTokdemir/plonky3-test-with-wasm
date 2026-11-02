@@ -38,7 +38,7 @@ pub const HALF_FULL_ROUNDS: usize = BABYBEAR_POSEIDON2_HALF_FULL_ROUNDS;
 pub const PARTIAL_ROUNDS: usize = BABYBEAR_POSEIDON2_PARTIAL_ROUNDS_16;
 
 /// Trace height. Rows beyond 5 are padding: the hiding PCS needs
-/// `height >= 2 * (num_queries + 4 * opening_points)`, i.e. >= 216 with 100 queries.
+/// `height >= 2 * (num_queries + 4 * opening_points)`, i.e. >= 92 with 38 queries.
 pub const LOG_TRACE_ROWS: usize = 8;
 pub const TRACE_ROWS: usize = 1 << LOG_TRACE_ROWS;
 

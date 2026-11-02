@@ -8,6 +8,7 @@ use p3_field::{PrimeCharacteristicRing, PrimeField32};
 use voter_stark::air::{NUM_CANDIDATES, Witness, public_values};
 use voter_stark::ballot::{Ballot, BallotBox};
 use voter_stark::hash::{DIGEST, Digest, F, hash_leaf, nullifier};
+use voter_stark::receipts::{decode_path, verify_receipt as check_receipt};
 use voter_stark::registry::{Registrar, SignedRoot, Voter};
 use voter_stark::stark::{prove_eligibility, serialize};
 use voter_stark::tree::{MerkleTree, NUM_LEAVES};
@@ -50,6 +51,11 @@ impl Election {
         self.signed.election_id
     }
 
+    /// Registrar-signed eligibility root; the native aggregator needs it.
+    pub fn root(&self) -> Vec<u32> {
+        self.signed.root.map(|x| x.as_canonical_u32()).to_vec()
+    }
+
     /// Verify and record a ballot. Returns `Ok(())` or the `BallotError` as text.
     pub fn submit(&mut self, nullifier: &[u32], vote: u32, proof: &[u8]) -> Result<String, JsError> {
         let ballot = Ballot {
@@ -63,6 +69,13 @@ impl Election {
     pub fn tally(&self) -> Vec<u32> {
         self.ballot_box.tally.to_vec()
     }
+}
+
+/// Voter side: is my `(nullifier, vote)` under the native aggregate's `receipt_root`?
+#[wasm_bindgen]
+pub fn verify_receipt(nullifier: &[u32], vote: u32, path: &[u32], receipt_root: &[u32]) -> Result<bool, JsError> {
+    let path = decode_path(path).ok_or_else(|| JsError::new("bad receipt path"))?;
+    Ok(check_receipt(&to_digest(nullifier)?, vote, &path, &to_digest(receipt_root)?))
 }
 
 #[wasm_bindgen]

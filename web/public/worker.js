@@ -1,6 +1,6 @@
 // Module worker: loads the wasm once, then runs commands from the page.
 // Each worker has its own wasm instance; timings use performance.now() around the wasm call only.
-import init, { Election, prove_ballot } from "/pkg/voter_stark_wasm.js";
+import init, { Election, prove_ballot, verify_receipt } from "/pkg/voter_stark_wasm.js";
 
 const ready = init();
 let election = null;
@@ -16,7 +16,7 @@ self.onmessage = async ({ data: msg }) => {
         break;
       case "setup":
         election = new Election();
-        out = { secrets: election.secrets(), electionId: election.election_id() };
+        out = { secrets: election.secrets(), electionId: election.election_id(), root: Array.from(election.root()) };
         break;
       case "prove": {
         const b = prove_ballot(msg.secrets, msg.electionId, msg.index, msg.vote);
@@ -30,6 +30,9 @@ self.onmessage = async ({ data: msg }) => {
         break;
       case "tally":
         out = { tally: Array.from(election.tally()) };
+        break;
+      case "checkReceipt":
+        out = { ok: verify_receipt(msg.nullifier, msg.vote, msg.path, msg.receiptRoot) };
         break;
       default:
         throw new Error(`unknown cmd ${msg.cmd}`);

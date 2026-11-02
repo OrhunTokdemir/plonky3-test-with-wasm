@@ -11,10 +11,13 @@
 //! degree-4 extension field (~124-bit challenge space). Zero knowledge relies on Plonky3's
 //! hiding FRI PCS seeded from OS randomness.
 
+#[cfg(feature = "aggregation")]
+pub mod aggregate;
 pub mod air;
 pub mod ballot;
 pub mod hash;
 pub mod proof_store;
+pub mod receipts;
 pub mod registry;
 pub mod stark;
 pub mod tree;

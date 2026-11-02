@@ -54,6 +54,7 @@ pub fn cast_ballot(
 pub struct BallotBox {
     signed: SignedRoot,
     spent: HashSet<[u32; 8]>,
+    accepted: Vec<Ballot>,
     pub tally: [u32; NUM_CANDIDATES as usize],
 }
 
@@ -65,6 +66,7 @@ impl BallotBox {
         Ok(Self {
             signed,
             spent: HashSet::new(),
+            accepted: Vec::new(),
             tally: [0; NUM_CANDIDATES as usize],
         })
     }
@@ -91,7 +93,17 @@ impl BallotBox {
         self.check(ballot)?;
         self.spent.insert(key(&ballot.nullifier));
         self.tally[ballot.vote as usize] += 1;
+        self.accepted.push(ballot.clone());
         Ok(())
+    }
+
+    /// Accepted ballots in submission order (the input to [`crate::aggregate::aggregate`]).
+    pub fn accepted(&self) -> &[Ballot] {
+        &self.accepted
+    }
+
+    pub fn signed_root(&self) -> &SignedRoot {
+        &self.signed
     }
 }
 

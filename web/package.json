@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "wasm": "cd ../wasm && wasm-pack build --release --target web --out-dir ../web/public/pkg --no-pack"
+    "wasm": "cd ../wasm && wasm-pack build --release --target web --out-dir ../web/public/pkg --no-pack",
+    "aggregator": "cd .. && cargo build --release --bin aggregator"
   },
   "dependencies": {
     "next": "16.4.3",

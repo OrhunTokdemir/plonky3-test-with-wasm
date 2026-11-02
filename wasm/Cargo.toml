@@ -7,8 +7,8 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-voter_stark = { path = ".." }
-p3-field = "0.8.0"
+voter_stark = { path = "..", default-features = false }
+p3-field = "=0.9.0-rc.2"
 wasm-bindgen = "0.2"
 # Both getrandom versions in the tree need the JS backend on wasm32-unknown-unknown.
 getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
