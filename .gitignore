@@ -1,2 +1,38 @@
-/target
-/proofs
+# ---- Rust ----
+/target/
+/wasm/target/
+**/*.rs.bk
+
+# ---- Generated artifacts ----
+# Saved ballot and aggregate proofs (cargo run, native aggregator)
+/proofs/
+# wasm-pack output (rebuild with `cd web && npm run wasm`)
+/web/public/pkg/
+
+# ---- Next.js / Node (see also web/.gitignore) ----
+node_modules/
+/web/.pnp
+/web/.pnp.*
+/web/.yarn/*
+!/web/.yarn/patches
+!/web/.yarn/plugins
+!/web/.yarn/releases
+!/web/.yarn/versions
+/web/coverage/
+/web/.next/
+/web/out/
+/web/build/
+*.tsbuildinfo
+/web/next-env.d.ts
+.env*
+.vercel
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ---- Editors / OS ----
+.idea/
+.vscode/
+.DS_Store
+*.pem
